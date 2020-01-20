@@ -1,4 +1,4 @@
-// day second 00.00.00
+// day second 00.20.00
 document.addEventListener('DOMContentLoaded', () => {
     const search = document.querySelector('.search'), //первый элемент у которого такой класс,querySelectorAll все элементы
         cartBtn = document.getElementById('cart'),
