@@ -1,4 +1,4 @@
-// day second 02.25.00
+// day three 00.00.00
 document.addEventListener('DOMContentLoaded', () => {
 
     // fetch('db/db.json')
@@ -102,16 +102,16 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(filter)
             .then(handler);
     }
-    const randomSort = item => item.sort(() => Math.random() - 0.5); //метод sort мы можем передать несколько параметров по которым будет сортироваться и на сайте мдн можем почитать, чтоб отсортировать массив рандомно=>Math.random() возвращает число от нуля до единицы, нам нужно чтоб число было отриц либо пол значит Math.random()-0.5 просто рандомная сортировка
+    const randomSort = goods => goods.sort(() => Math.random() - 0.5); //метод sort мы можем передать несколько параметров по которым будет сортироваться и на сайте мдн можем почитать, чтоб отсортировать массив рандомно=>Math.random() возвращает число от нуля до единицы, нам нужно чтоб число было отриц либо пол значит Math.random()-0.5 просто рандомная сортировка
     const choiceCategory = (event) => {
         event.preventDefault();
         const target = event.target;
 
         if (target.classList.contains('category-item')) {
-            const category = target.dataset.category;
+            const cat = target.dataset.category; 
             // console.log(target.dataset); // получим все дата атрибуты которые есть у элемента data-...
             // console.log(target.dataset.category);//в датаатрибутах нету когда возвращает нету дефисов только camelCase
-            getGoods(renderCard, (goods) => goods.filter(item => item.category.includes(category))); //includes на массиве скажет тру или фолс-есть ли товары н или нету            
+            getGoods(renderCard, (goods) => goods.filter(item => item.category.includes(cat))); //includes на массиве скажет тру или фолс-есть ли товары н или нету            .bind() передает в фенкцию аргумент переменную но не вызывает функцию
         };
     };
     cartBtn.addEventListener('click', openCart);
