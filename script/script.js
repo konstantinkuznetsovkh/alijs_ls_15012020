@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cardWrapper = document.querySelector('.cart-wrapper');
 
     const wishlist = [];
-    const goodsBasket = {}; //пустой обьект
+    let goodsBasket = {}; //пустой обьект
 
     const loading = () => {
         goodsWrapper.innerHTML = `<div id="spinner"><div class="spinner-loading"><div><div><div></div>
@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const renderBasket = goods => {
         //    items.forEach((item,index, array)=>{  });
-        cartWrapper.textContent = ''; //зачищаем все старые  товары на стр : textContent быстрее чем innerHTML
+        cardWrapper.textContent = ''; //зачищаем все старые  товары на стр : textContent быстрее чем innerHTML
         if (goods.length) {
             goods.forEach((item) => { //или так items.forEach(({ id, title, price, imgMin }) но тогда удаляем const { id, title, price, imgMin }
                 const {
@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     price,
                     imgMin
                 } = item; // деструктуризация с присвоением и ставим откуда хочу получить(item); получаем переменные-создаем переменные
-                cartWrapper.append(createCardGoodsBasket(id, title, price, imgMin));
+                cardWrapper.append(createCardGoodsBasket(id, title, price, imgMin));
             });
         } else {
             cartWrapper.innerHTML = `<div id="cart-empty">Ваша корзина ещё пуста</div>`;
@@ -124,18 +124,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const target = event.target;
 
-        if (target === cart || target.classList.contains('cart-close') || event.keyCode === 27) { //если куда я кликнул будет являться элементом с классом cart то сработает || или там где мы кликнули есть класс cart-close тоже сработает; свойство contains у classList проверяет есть ли классnpm install -g eslint
+        if (target === cart || target.classList.contains('cart-close') || event.keyCode === 27) { //если куда я кликнул будет являться элементом с классом cart то сработает || или там где мы кликнули есть класс cart-close тоже сработает; свойство contains у classList проверяет есть ли класс 
             cart.style.display = ''; // если очистить то применятся стили те которые в цсс
             document.removeEventListener('keyup', closeCart);
         }
         console.log(event.keyCode);
 
     };
-    const openCart = () => {
+    const showCardBasket = goods => goods.filter( item => goodsBasket.hasOwnProperty( item.id ) );
+    const openCart = event => {
         event.preventDefault();
         cart.style.display = 'flex';
         // у  клавиатуры есть три события- keypress keyup keydown
         document.addEventListener('keyup', closeCart);
+        getGoods(renderBasket, showCardBasket);
     };
 
     //есть api fetch вместо xtmlhtpr
@@ -157,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ппомисы асинхронные
 
     const getGoods = (handler, filter) => {
-        loading();
+        // loading();
         fetch('db/db.json')
             .then(response => response.json()) //переделывает в массив из json формата.и выполняем ретерн
             .then(filter)
@@ -196,10 +198,31 @@ document.addEventListener('DOMContentLoaded', () => {
         input.value = '';
     };
 
+    //https://learn.javascript.ru/cookie#prilozhenie-funktsii-dlya-raboty-s-kuki
+    // возвращает куки с указанным name,
+    // или undefined, если ничего не найдено
+    //сами куки хранятся через ; работают только на сервере
+    const getCookie = name => {
+        let matches = document.cookie.match(new RegExp(
+            "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+        ));
+        return matches ? decodeURIComponent(matches[1]) : undefined; //0 это имя куки, 1 это сами данные которые мы туда записали
+    }
+
+    const cookieQuery = get => {
+        if (get) {
+            goodsBasket = JSON.parse(getCookie('goodsBasket'));
+            checkCount();
+        } else {
+            document.cookie = `goodsBasket=${JSON.stringify(goodsBasket)}; max-age=86400e3`; //max-age это сколько в милисек будут храниться наши куки
+        }
+        // console.log(goodsBasket)
+    };
+
     const checkCount = () => {
         wishlistCounter.textContent = wishlist.length;
-        cardCounter.textContent= Object.keys(goodsBasket).length; //так как у обьекта нету length то пишем через обьект кей и он нам возвращает массив в котором только ключи но мы увидим кол-во  length
-    }
+        cardCounter.textContent = Object.keys(goodsBasket).length; //так как у обьекта нету length то пишем через обьект кей и он нам возвращает массив в котором только ключи но мы увидим кол-во  length
+    };
 
     const storageQuery = get => { //localStorage это API браузера который может хранить данные и имеет свои методы свои свойства
         if (get) {
@@ -208,11 +231,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 wishlistStorage.forEach(id => wishlist.push(id)); //так данные будут возвращаться и записываться в wishlist, а wishlist мы каждый раз когда кликаем
 
             }
+            checkCount();
 
         } else {
             localStorage.setItem('wishlist', JSON.stringify(wishlist)); // добавить в локасторэдж. через JSON.stringify передаем в массиве и обратно мы будем получать строку и нам надо будет распарсить 
         }
-        checkCount();
     };
 
     const toggleWishlist = (id, elem) => {
@@ -234,6 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
             goodsBasket[id] = 1
         }
         checkCount();
+        cookieQuery();
     }
     const handlerGoods = (event) => {
         const target = event.target;
@@ -263,4 +287,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     getGoods(renderCard, randomSort);
     storageQuery(true);
+    cookieQuery(true);
 });
