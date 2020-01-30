@@ -1,4 +1,5 @@
-// day three 02.29.39
+// просто возможности джс. не надо так делать магаз-он не безопасен!
+// 01.08.55
 document.addEventListener('DOMContentLoaded', () => {
 
     // fetch('db/db.json')
@@ -28,12 +29,19 @@ document.addEventListener('DOMContentLoaded', () => {
         cardWrapper = document.querySelector('.cart-wrapper');
 
     const wishlist = [];
-    let goodsBasket = {}; //пустой обьект
+    const goodsBasket = {}; //пустой обьект
 
-    const loading = () => {
-        goodsWrapper.innerHTML = `<div id="spinner"><div class="spinner-loading"><div><div><div></div>
+    const loading = (nameFunction) => {
+        const spinner = `<div id="spinner"><div class="spinner-loading"><div><div><div></div>
           </div><div><div></div></div><div><div></div></div><div><div></div></div></div></div></div>
-          `
+          `;
+        if (nameFunction === 'renderCard') {
+            goodsWrapper.innerHTML = spinner;
+        }
+        if (nameFunction === 'renderBasket') {
+            cardWrapper.innerHTML = spinner;
+        }
+        //   console.log(nameFunction);
     };
 
 
@@ -92,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <button class="goods-add-wishlist ${wishlist.includes(id)? 'active': ''}"  data-goods-id="${id}"></button>
             <button class="goods-delete"  data-goods-id="${id}"></button>
         </div>
-        <div class="goods-count">1</div> 
+        <div class="goods-count">${goodsBasket[id]}</div> 
     </div>`;
         return card;
     };
@@ -128,10 +136,32 @@ document.addEventListener('DOMContentLoaded', () => {
             cart.style.display = ''; // если очистить то применятся стили те которые в цсс
             document.removeEventListener('keyup', closeCart);
         }
-        console.log(event.keyCode);
+        // console.log(event.keyCode); 
 
     };
-    const showCardBasket = goods => goods.filter( item => goodsBasket.hasOwnProperty( item.id ) );
+    const calcTotalPrice = goods => {
+        // let sum = 0;
+        //начало с помощью reduce
+        let sum = goods.reduce((accum, item) => {
+            return accum + item.price * goodsBasket[item.id];
+
+        }, 0) //принимает четыре параметра-1-откуда начинается отсчет начинается с нуля
+        //end с помощью reduce
+
+
+
+        // for (const item of goods) {
+        //     // console.log(item);
+        //     sum += item.price * goodsBasket[item.id];
+        // }
+        cart.querySelector('.cart-total>span').textContent = sum.toFixed(2); // toFix оставляет две цифрі после запятой 
+    };
+    const showCardBasket = goods => {
+        const basketGoods = goods.filter(item => goodsBasket.hasOwnProperty(item.id));
+        calcTotalPrice(basketGoods);
+        return basketGoods;
+    };
+
     const openCart = event => {
         event.preventDefault();
         cart.style.display = 'flex';
@@ -159,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ппомисы асинхронные
 
     const getGoods = (handler, filter) => {
-        // loading();
+        loading(handler.name);
         fetch('db/db.json')
             .then(response => response.json()) //переделывает в массив из json формата.и выполняем ретерн
             .then(filter)
@@ -211,7 +241,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const cookieQuery = get => {
         if (get) {
-            goodsBasket = JSON.parse(getCookie('goodsBasket'));
+            if (getCookie('goodsBasket')) {
+                Object.assign(goodsBasket, JSON.parse(getCookie('goodsBasket')));
+
+                // goodsBasket = JSON.parse(getCookie('goodsBasket'));
+            }
             checkCount();
         } else {
             document.cookie = `goodsBasket=${JSON.stringify(goodsBasket)}; max-age=86400e3`; //max-age это сколько в милисек будут храниться наши куки
@@ -227,8 +261,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const storageQuery = get => { //localStorage это API браузера который может хранить данные и имеет свои методы свои свойства
         if (get) {
             if (localStorage.getItem('wishlist')) {
-                const wishlistStorage = JSON.parse(localStorage.getItem('wishlist'));
-                wishlistStorage.forEach(id => wishlist.push(id)); //так данные будут возвращаться и записываться в wishlist, а wishlist мы каждый раз когда кликаем
+                wishlist.push(...JSON.parse(localStorage.getItem('wishlist'))); //через запяту можем перечислить ещё массивы и они тож будут собираться и добавляться
+
+                // wishlist.splice(0, 0, ...JSON.parse(localStorage.getItem('wishlist'))); //первім поставить infinity то  будет добавлять в начало
+                // const wishlistStorage = JSON.parse(localStorage.getItem('wishlist'));
+                // wishlistStorage.forEach(id => wishlist.push(id)); //так данные будут возвращаться и записываться в wishlist, а wishlist мы каждый раз когда кликаем
 
             }
             checkCount();
